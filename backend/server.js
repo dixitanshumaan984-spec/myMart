@@ -13,7 +13,7 @@ import {
   sendOutForDelivery,
   sendLowStockAlert,
   sendFlashDeals,
-  autoAssignDelivery // ✅ New
+  autoAssignDelivery
 } from './inngest/functions.js'
 import { setIO } from './config/socket.js'
 import './config/db.js'
@@ -28,19 +28,33 @@ import notificationRoutes from './routes/notificationRoutes.js'
 const app = express()
 const httpServer = createServer(app)
 
+// ✅ Updated CORS for production
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://my-mart-one.vercel.app',
+  process.env.FRONTEND_URL
+].filter(Boolean)
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}))
+
+app.use(express.json())
+
+// ✅ Socket.IO with updated CORS
 const io = new Server(httpServer, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
-    methods: ['GET', 'POST']
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 })
 
 setIO(io)
 
-app.use(cors())
-app.use(express.json())
-
-// ✅ Inngest route with autoAssignDelivery added
+// ✅ Inngest route
 app.use('/api/inngest', serve({
   client: inngest,
   functions: [
@@ -49,10 +63,11 @@ app.use('/api/inngest', serve({
     sendOutForDelivery,
     sendLowStockAlert,
     sendFlashDeals,
-    autoAssignDelivery // ✅ New
+    autoAssignDelivery
   ]
 }))
 
+// ✅ All routes
 app.use('/api/auth', authRoutes)
 app.use('/api/products', productRoutes)
 app.use('/api/orders', orderRoutes)
@@ -61,22 +76,28 @@ app.use('/api/reviews', reviewRoutes)
 app.use('/api/delivery', deliveryRoutes)
 app.use('/api/notifications', notificationRoutes)
 
+// ✅ Test route
 app.get('/', (req, res) => {
   res.json({ message: 'myMart API is running! 🛒' })
 })
 
+// ✅ Socket.IO events
 io.on('connection', (socket) => {
   console.log('🔌 Client connected:', socket.id)
+
   socket.on('join_order', (orderId) => {
     socket.join(`order_${orderId}`)
     console.log(`📦 Socket joined order room: order_${orderId}`)
   })
+
   socket.on('share_location', ({ orderId, lat, lng }) => {
     io.to(`order_${orderId}`).emit('location_update', { lat, lng, orderId })
   })
+
   socket.on('order_status_update', ({ orderId, status }) => {
     io.to(`order_${orderId}`).emit('status_changed', { orderId, status })
   })
+
   socket.on('disconnect', () => {
     console.log('🔌 Client disconnected:', socket.id)
   })
