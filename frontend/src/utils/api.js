@@ -16,5 +16,5 @@ api.interceptors.request.use((config) => {
 export default api
 
 // ImageKit config
-export const IMAGEKIT_URL = 'https://ik.imagekit.io/a6nimk99z'
-export const IMAGEKIT_PUBLIC_KEY = 'public_hrrprMOZn+x28WWxfrcQkhlzJ5U='
+export const IMAGEKIT_URL = import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/a6nimk99z'
+export const IMAGEKIT_PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY || 'public_hrrprMOZn+x28WWxfrcQkhlzJ5U='
