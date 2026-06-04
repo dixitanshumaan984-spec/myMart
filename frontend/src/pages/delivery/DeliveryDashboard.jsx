@@ -87,13 +87,13 @@ export default function DeliveryDashboard() {
   };
 
   // Start sharing location
-  const startLocationSharing = (orderId) => {
-    setLocationError('');
-    if (!navigator.geolocation) {
-      setLocationError('Geolocation not supported by your browser');
-      return;
-    }
-
+  const shareLocation = () => {
+    // ✅ Fake location - Satya Nagar, Bhubaneswar (for testing)
+    const lat = 20.2672;
+    const lng = 85.8380;
+    socket.emit('share_location', { orderId, lat, lng });
+    console.log(`📍 Sharing location: ${lat}, ${lng}`);
+  };
     // Join order room
     socket.emit('join_order', orderId);
 
