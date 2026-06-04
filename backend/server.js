@@ -24,11 +24,12 @@ import addressRoutes from './routes/addressRoutes.js'
 import reviewRoutes from './routes/reviewRoutes.js'
 import deliveryRoutes from './routes/deliveryRoutes.js'
 import notificationRoutes from './routes/notificationRoutes.js'
+import uploadRoutes from './routes/uploadRoutes.js' // ✅ Added
 
 const app = express()
 const httpServer = createServer(app)
 
-// ✅ Updated CORS for production
+// ✅ CORS for production
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
@@ -43,7 +44,7 @@ app.use(cors({
 
 app.use(express.json())
 
-// ✅ Socket.IO with updated CORS
+// ✅ Socket.IO
 const io = new Server(httpServer, {
   cors: {
     origin: allowedOrigins,
@@ -75,6 +76,7 @@ app.use('/api/addresses', addressRoutes)
 app.use('/api/reviews', reviewRoutes)
 app.use('/api/delivery', deliveryRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/upload', uploadRoutes) // ✅ Added
 
 // ✅ Test route
 app.get('/', (req, res) => {

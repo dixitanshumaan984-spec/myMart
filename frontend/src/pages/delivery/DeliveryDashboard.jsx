@@ -4,7 +4,7 @@ import { Bike, Package, CheckCircle, Clock, Truck, LogOut, MapPin, Shield, Navig
 import { io } from 'socket.io-client';
 import api from '../../utils/api';
 
-const socket = io('http://localhost:5000');
+const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000')
 
 const STATUS_CONFIG = {
   pending:          { label: 'Pending',          color: 'bg-yellow-100 text-yellow-700',  dot: 'bg-yellow-400' },
