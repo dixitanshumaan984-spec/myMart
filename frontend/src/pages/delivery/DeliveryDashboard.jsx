@@ -29,7 +29,7 @@ export default function DeliveryDashboard() {
   const [otpLoading, setOtpLoading] = useState(false);
 
   // Location sharing state
-  const [sharingLocation, setSharingLocation] = useState(null); // orderId being shared
+  const [sharingLocation, setSharingLocation] = useState(null);
   const [locationError, setLocationError] = useState('');
   const locationIntervalRef = useRef(null);
 
@@ -44,7 +44,6 @@ export default function DeliveryDashboard() {
     fetchMyOrders();
 
     return () => {
-      // Cleanup on unmount
       if (locationIntervalRef.current) {
         clearInterval(locationIntervalRef.current);
       }
@@ -55,7 +54,7 @@ export default function DeliveryDashboard() {
   const fetchMyOrders = async () => {
     try {
       const token = localStorage.getItem('deliveryToken');
-      const res = await api.get('/delivery/my-deliveries', { 
+      const res = await api.get('/delivery/my-deliveries', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setOrders(res.data);
@@ -74,7 +73,6 @@ export default function DeliveryDashboard() {
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // Emit status change via socket
       socket.emit('order_status_update', { orderId, status: newStatus });
       setOrders(prev =>
         prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o)
@@ -86,31 +84,24 @@ export default function DeliveryDashboard() {
     }
   };
 
-  // Start sharing location
-  const shareLocation = () => {
-    // ✅ Fake location - Satya Nagar, Bhubaneswar (for testing)
-    const lat = 20.2672;
-    const lng = 85.8380;
-    socket.emit('share_location', { orderId, lat, lng });
-    console.log(`📍 Sharing location: ${lat}, ${lng}`);
-  };
+  // ✅ Start sharing location
+  const startLocationSharing = (orderId) => {
+    setLocationError('');
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation not supported by your browser');
+      return;
+    }
+
     // Join order room
     socket.emit('join_order', orderId);
 
-    // Share location every 5 seconds
     const shareLocation = () => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude: lat, longitude: lng } = position.coords;
-          socket.emit('share_location', { orderId, lat, lng });
-          console.log(`📍 Sharing location: ${lat}, ${lng}`);
-        },
-        (err) => {
-          setLocationError('Could not get location. Please enable GPS.');
-          stopLocationSharing();
-        },
-        { enableHighAccuracy: true }
-      );
+      // ✅ Fake location - Satya Nagar, Bhubaneswar (for testing)
+      // Replace with real GPS after testing
+      const lat = 20.2672;
+      const lng = 85.8380;
+      socket.emit('share_location', { orderId, lat, lng });
+      console.log(`📍 Sharing location: ${lat}, ${lng}`);
     };
 
     // Share immediately then every 5 seconds
@@ -119,7 +110,7 @@ export default function DeliveryDashboard() {
     setSharingLocation(orderId);
   };
 
-  // Stop sharing location
+  // ✅ Stop sharing location
   const stopLocationSharing = () => {
     if (locationIntervalRef.current) {
       clearInterval(locationIntervalRef.current);
@@ -148,9 +139,7 @@ export default function DeliveryDashboard() {
         { otp: otpInput },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // Emit delivered status
       socket.emit('order_status_update', { orderId, status: 'delivered' });
-      // Stop location sharing
       if (sharingLocation === orderId) stopLocationSharing();
       setOtpModal(null);
       setOtpInput('');
@@ -297,7 +286,7 @@ export default function DeliveryDashboard() {
                       <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0" />
                       <p className="text-xs text-green-700 font-semibold">
                         📍 Live location being shared with customer
-      </p>
+                      </p>
                     </div>
                   )}
 
