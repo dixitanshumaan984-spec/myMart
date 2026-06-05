@@ -96,12 +96,18 @@ export default function DeliveryDashboard() {
     socket.emit('join_order', orderId);
 
     const shareLocation = () => {
-      // ✅ Fake location - Satya Nagar, Bhubaneswar (for testing)
-      // Replace with real GPS after testing
-      const lat = 20.2672;
-      const lng = 85.8380;
-      socket.emit('share_location', { orderId, lat, lng });
-      console.log(`📍 Sharing location: ${lat}, ${lng}`);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude: lat, longitude: lng } = position.coords;
+          socket.emit('share_location', { orderId, lat, lng });
+          console.log(`📍 Sharing location: ${lat}, ${lng}`);
+        },
+        (err) => {
+          setLocationError('Could not get location. Please enable GPS.');
+          stopLocationSharing();
+        },
+        { enableHighAccuracy: true }
+      );
     };
 
     // Share immediately then every 5 seconds
